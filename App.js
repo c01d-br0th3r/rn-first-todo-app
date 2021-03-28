@@ -1,42 +1,53 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Button,
-  SafeAreaView,
-} from "react-native";
+import { StyleSheet, View, Button, SafeAreaView, FlatList } from "react-native";
+import GoalInput from "./components/GoalInput";
+import GoalItem from "./components/GoalItem";
 
 export default function App() {
   const [enteredGoal, setEnteredGoal] = useState("");
   const [courseGoals, setCourseGoals] = useState([]);
+  const [isAddMode, setIsAddMode] = useState(false);
 
   const handleChange = (enteredText) => {
     setEnteredGoal(enteredText);
   };
 
   const handlePress = () => {
-    setCourseGoals((currentGoals) => [...currentGoals, enteredGoal]);
+    setCourseGoals((currentGoals) => [
+      ...currentGoals,
+      { key: Math.random().toString(), value: enteredGoal },
+    ]);
+    setIsAddMode(false);
+    setEnteredGoal("");
+  };
+
+  const handleDelete = (goalId) => {
+    setCourseGoals((currentGoals) =>
+      currentGoals.filter((goal) => goal.key !== goalId)
+    );
   };
 
   return (
     <View style={styles.container}>
       <SafeAreaView>
-        <View style={styles.topSection}>
-          <TextInput
-            placeholder="Input your goal"
-            style={styles.inputField}
-            onChangeText={handleChange}
-            value={enteredGoal}
-          />
-          <Button title="ADD" onPress={handlePress} />
-        </View>
-        <View>
-          {courseGoals.map((goal) => (
-            <Text>{goal}</Text>
-          ))}
-        </View>
+        <Button title="Add New Goal" onPress={() => setIsAddMode(true)} />
+        <GoalInput
+          visible={isAddMode}
+          enteredGoal={enteredGoal}
+          handleChange={handleChange}
+          handlePress={handlePress}
+        />
+        <FlatList
+          keyExtractor={(item, index) => item.key}
+          data={courseGoals}
+          renderItem={(itemData) => (
+            <GoalItem
+              id={itemData.item.key}
+              handleDelete={handleDelete}
+              title={itemData.item.value}
+            />
+          )}
+        />
       </SafeAreaView>
     </View>
   );
@@ -45,16 +56,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-  },
-  topSection: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  inputField: {
-    width: "80%",
-    borderBottomColor: "black",
-    borderBottomWidth: 1,
-    padding: 10,
   },
 });
